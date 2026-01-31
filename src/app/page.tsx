@@ -231,7 +231,7 @@ export default function App() {
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl px-4 py-8 border-b border-[#F5F5F5]">
         <div className="max-w-5xl mx-auto space-y-6">
           <div className="flex items-center gap-4">
-            <button onClick={() => setView('home')} className="h-10 px-5 bg-white border border-[#EEE] text-[10px] font-black rounded-full tracking-widest active:scale-95 transition-all uppercase">Back</button>
+            <button onClick={() => setView('home')} className="h-10 px-5 bg-white border border-[#EEE] text-[16px] font-black rounded-full tracking-widest active:scale-95 transition-all uppercase">Back</button>
             <input type="text" placeholder="Search Style or ID..." className="flex-1 h-10 px-5 bg-[#F5F5F5] rounded-full border-none outline-none text-sm" onChange={(e) => setSearch(e.target.value)} />
           </div>
           <select value={selectedSubCat} onChange={(e) => setSelectedSubCat(e.target.value)} className="w-full h-10 px-5 bg-white border border-[#EEE] rounded-xl text-[10px] font-bold tracking-widest text-[#2D2D2D] appearance-none">
