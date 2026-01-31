@@ -80,12 +80,13 @@ export default function App() {
     }
   }, [cart, view, activeMajor, isMounted]);
 
+  // 修改前: p => p.sub_category
   const subCategories = useMemo(() => {
-    return Array.from(new Set(allProducts.map(p => p.sub_category))).filter(Boolean);
+    return Array.from(new Set(allProducts.map((p: any) => p.sub_category))).filter(Boolean);
   }, [allProducts]);
 
   if (CATEGORY_CONFIG.mats && allProducts.length > 0) {
-    CATEGORY_CONFIG.mats.count = allProducts.filter(p => p.major_id === 'mats').length;
+    CATEGORY_CONFIG.mats.count = allProducts.filter((p: any) => p.major_id === 'mats').length;
   }
 
   const cartItems = Object.values(cart);
@@ -134,7 +135,8 @@ export default function App() {
       return;
     }
 
-    const styleNotes = cartItems.map(item => `${item.id}-${item.style} (x${item.qty})`).join(", ");
+    // 修改前: item => ...
+    const styleNotes = cartItems.map((item: any) => `${item.id}-${item.style} (x${item.qty})`).join(", ");
     try { await navigator.clipboard.writeText(styleNotes); } catch (e) {}
 
     try {
@@ -156,11 +158,11 @@ export default function App() {
     setErrors({ name: false, email: false });
   };
 
-  // 修改 page.tsx 中的过滤逻辑
+// 修改后的过滤逻辑：彻底移除隐式 any 报错
   const filteredProducts = useMemo(() => {
     const searchTerm = search.toLowerCase().trim();
     
-    return allProducts.filter(p => {
+    return allProducts.filter((p: any) => {
       // 1. 分类筛选优先级最高
       const matchCat = !selectedSubCat || selectedSubCat === "All" || p.sub_category === selectedSubCat;
       if (!matchCat) return false;
@@ -169,23 +171,23 @@ export default function App() {
       if (!searchTerm) return true;
 
       // 3. 多词组合搜索逻辑：按空格拆分关键词
-      const keywords = searchTerm.split(/\s+/).filter(k => k.length > 0);
+      const keywords: string[] = searchTerm.split(/\s+/).filter((k: string) => k.length > 0);
 
       // 4. 检查是否满足“每个”关键词 (AND 逻辑)
-      return keywords.every(key => {
+      return keywords.every((key: string) => {
         // 在 ID 中匹配
         const inId = fuzzyMatch(p.id, key);
         
         // 在 Style 中匹配
         const inStyle = fuzzyMatch(p.style, key);
         
-        // 在 Tags 数组中匹配
-        const inTags = p.tags?.some(tag => fuzzyMatch(tag, key)) || false;
+        // 在 Tags 数组中匹配 (修正报错位置：为 tag 显式指定类型)
+        const inTags = p.tags?.some((tag: string) => fuzzyMatch(tag, key)) || false;
 
         return inId || inStyle || inTags;
       });
     });
-  }, [allProducts, search, selectedSubCat]); // 使用 useMemo 提升大数据量下的性能
+  }, [allProducts, search, selectedSubCat]);
 
   if (!isMounted) return null;
 
@@ -223,8 +225,8 @@ export default function App() {
             <input type="text" placeholder="Search Style or ID..." className="flex-1 h-10 px-5 bg-[#F5F5F5] rounded-full border-none outline-none text-sm" onChange={(e) => setSearch(e.target.value)} />
           </div>
           <select value={selectedSubCat} onChange={(e) => setSelectedSubCat(e.target.value)} className="w-full h-10 px-5 bg-white border border-[#EEE] rounded-xl text-[10px] font-bold tracking-widest text-[#2D2D2D] appearance-none">
-            <option value="All">ALL COLLECTIONS</option>
-            {subCategories.map(cat => <option key={cat} value={cat}>{cat.toUpperCase()}</option>)}
+          <option value="All">ALL COLLECTIONS</option>
+          {subCategories.map((cat: any) => <option key={cat} value={cat}>{cat.toString().toUpperCase()}</option>)}
           </select>
         </div>
       </div>
