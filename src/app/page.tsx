@@ -10,15 +10,15 @@ const supabase = createClient(
 );
 
 // 简易模糊匹配：允许搜索词在目标字符串中按顺序出现即可（容错性极高）
-const fuzzyMatch = (target, query) => {
-  target = (target || "").toLowerCase();
-  query = (query || "").toLowerCase();
-  if (target.includes(query)) return true; // 先尝试精确匹配
+// 修改后的 TypeScript 兼容版模糊匹配
+const fuzzyMatch = (target: string | any, query: string | any): boolean => {
+  const t = (target || "").toLowerCase();
+  const q = (query || "").toLowerCase();
+  if (t.includes(q)) return true;
   
-  // 如果不是精确匹配，尝试字符序列匹配（处理错别字或漏字）
   let n = -1;
-  for (let i = 0; i < query.length; i++) {
-    if (!~(n = target.indexOf(query[i], n + 1))) return false;
+  for (let i = 0; i < q.length; i++) {
+    if (!~(n = t.indexOf(q[i], n + 1))) return false;
   }
   return true;
 };
