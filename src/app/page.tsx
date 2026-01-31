@@ -101,6 +101,16 @@ export default function App() {
     }
   }, [totalItemsCount, isMounted]);
 
+  // 优化体验：当搜索内容或分类变化时，自动回到顶部
+  useEffect(() => {
+    if (isMounted) {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  }, [search, selectedSubCat]); 
+
   const addToCart = (product: any) => {
     setCart(prev => ({
       ...prev,
