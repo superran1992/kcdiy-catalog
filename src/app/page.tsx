@@ -80,9 +80,10 @@ export default function App() {
     }
   }, [cart, view, activeMajor, isMounted]);
 
-  // 修改前: p => p.sub_category
+  // 修改后：新增 .sort() 和 localeCompare 实现 A-Z 字母排序
   const subCategories = useMemo(() => {
-    return Array.from(new Set(allProducts.map((p: any) => p.sub_category))).filter(Boolean);
+    const cats = Array.from(new Set(allProducts.map((p: any) => p.sub_category))).filter(Boolean);
+    return cats.sort((a: any, b: any) => a.toString().localeCompare(b.toString()));
   }, [allProducts]);
 
   if (CATEGORY_CONFIG.mats && allProducts.length > 0) {
@@ -168,32 +169,30 @@ export default function App() {
     setErrors({ name: false, email: false });
   };
 
-// 修改后的过滤逻辑：彻底移除隐式 any 报错
+// 修改后的过滤逻辑：搜索意图优先 (Search Priority)
   const filteredProducts = useMemo(() => {
     const searchTerm = search.toLowerCase().trim();
-    
+    const isSearching = searchTerm.length > 0; // 判断是否正在搜索
+
     return allProducts.filter((p: any) => {
-      // 1. 分类筛选优先级最高
-      const matchCat = !selectedSubCat || selectedSubCat === "All" || p.sub_category === selectedSubCat;
+      // 1. 智能分类逻辑：
+      // 如果正在搜索 (isSearching=true)，直接忽略分类限制 (返回 true)
+      // 如果没有搜索，则严格遵守分类筛选
+      const matchCat = isSearching 
+        ? true 
+        : (!selectedSubCat || selectedSubCat === "All" || p.sub_category === selectedSubCat);
+
       if (!matchCat) return false;
 
-      // 2. 如果搜索框为空，直接显示该分类下所有产品
-      if (!searchTerm) return true;
+      // 2. 如果没有搜索词，上面分类匹配过了，直接显示
+      if (!isSearching) return true;
 
-      // 3. 多词组合搜索逻辑：按空格拆分关键词
+      // 3. (保留原有逻辑) 多词模糊匹配
       const keywords: string[] = searchTerm.split(/\s+/).filter((k: string) => k.length > 0);
-
-      // 4. 检查是否满足“每个”关键词 (AND 逻辑)
       return keywords.every((key: string) => {
-        // 在 ID 中匹配
         const inId = fuzzyMatch(p.id, key);
-        
-        // 在 Style 中匹配
         const inStyle = fuzzyMatch(p.style, key);
-        
-        // 在 Tags 数组中匹配 (修正报错位置：为 tag 显式指定类型)
         const inTags = p.tags?.some((tag: string) => fuzzyMatch(tag, key)) || false;
-
         return inId || inStyle || inTags;
       });
     });
@@ -232,7 +231,18 @@ export default function App() {
         <div className="max-w-5xl mx-auto space-y-6">
           <div className="flex items-center gap-4">
             <button onClick={() => setView('home')} className="h-10 px-5 bg-white border border-[#EEE] text-[16px] font-black rounded-full tracking-widest active:scale-95 transition-all uppercase">Back</button>
-            <input type="text" placeholder="Search Style or ID..." className="flex-1 h-10 px-5 bg-[#F5F5F5] rounded-full border-none outline-none text-sm" onChange={(e) => setSearch(e.target.value)} />
+            <input 
+              type="text" 
+              placeholder="Search Style or ID..." 
+              className="flex-1 h-10 px-5 bg-[#F5F5F5] rounded-full border-none outline-none text-sm" 
+              onChange={(e) => {
+                setSearch(e.target.value);
+                // 新增：只要输入框有字，就自动把分类切回 "All"，避免搜不到
+                if (e.target.value.trim().length > 0) {
+                  setSelectedSubCat("All");
+                }
+              }} 
+            />
           </div>
           <select value={selectedSubCat} onChange={(e) => setSelectedSubCat(e.target.value)} className="w-full h-10 px-5 bg-white border border-[#EEE] rounded-xl text-[10px] font-bold tracking-widest text-[#2D2D2D] appearance-none">
           <option value="All">ALL COLLECTIONS</option>
