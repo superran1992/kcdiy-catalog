@@ -52,9 +52,12 @@ export default function App() {
         const { data } = await supabase
           .from('products')
           .select('*')
-          .order('created_at', { ascending: false })
+          // 1. 先看权重 (Priority)：数字大的排最前面 (置顶功能)
           .order('priority', { ascending: false })
-          .order('cart_count', { ascending: false });
+          // 2. 权重一样时，看加购热度 (Cart Count)：买的人多的排前面
+          // .order('cart_count', { ascending: false }) // (可选：如果你想热度优先于时间，取消这行注释)
+          // 3. 最后才看时间 (Created At)：新的排前面
+          .order('created_at', { ascending: false });
         if (data) setAllProducts(data);
       } finally {
         setIsLoading(false);
