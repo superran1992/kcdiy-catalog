@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useMemo, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import Image from 'next/image';
+//import Image from 'next/image';
 
 // 初始化客户端
 const supabase = createClient(
@@ -262,13 +262,11 @@ export default function App() {
               onClick={() => setZoomImg(p.image_url)} 
               className={`${CATEGORY_CONFIG[activeMajor].ratio} bg-[#F8F8F8] relative overflow-hidden rounded-[2rem] mb-4 border border-black/5 cursor-zoom-in`}
             >
-              <Image 
+              <img 
                 src={p.image_url} 
                 alt={p.style} 
-                fill 
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className="object-cover transition-transform duration-1000 group-hover:scale-105"
-                priority={false} // 开启懒加载
+                loading="lazy"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
               />
               <div className="absolute top-4 left-4 z-10 bg-white/80 backdrop-blur-md text-[9px] font-bold px-3 py-1 rounded-full text-[#2D2D2D]">
                 {p.id}
@@ -326,12 +324,10 @@ export default function App() {
                 {cartItems.map((item: any) => (
                   <div key={item.id || item.ID} className="flex items-center gap-6">
                     <div className="relative w-24 h-12 rounded-lg overflow-hidden bg-[#F5F5F5]">
-                      <Image 
+                      <img 
                         src={item.image_url} 
                         alt={item.style}
-                        fill
-                        sizes="96px"
-                        className="object-cover"
+                        className="w-full h-full object-cover"
                       />
                     </div>
                     <div className="flex-1 min-w-0">
