@@ -4,49 +4,54 @@ import { NextResponse } from 'next/server';
 const resend = new Resend('re_5rJRXz2C_8X2bBoqs77P854WBD7mRVsaH');
 
 export async function POST(request: Request) {
-  const { customerName, customerEmail, cartItems, total } = await request.json();
-
   try {
+    const { customerName, customerEmail, cartItems, total } = await request.json();
+    
+    // 关键调试行：在部署后的日志中检查这里
+    console.log("Incoming Cart Items:", JSON.stringify(cartItems));
+
     const data = await resend.emails.send({
       from: 'KC DIY <orders@kcdiy.live>', 
       to: ['charles.li_27@foxmail.com', customerEmail], 
       subject: `✨ Your Order Selection: ${customerName}`,
       html: `
-        <div style="font-family: -apple-system, sans-serif; padding: 40px 20px; background-color: #FCFAF7; color: #2D2D2D;">
-          <div style="max-width: 600px; margin: 0 auto; background: #ffffff; padding: 40px; border-radius: 30px; border: 1px solid #F0F0F0;">
-            <h1 style="font-size: 22px; font-weight: 800; margin-bottom: 30px;">Order Summary</h1>
-            
-            <p style="font-size: 14px; margin-bottom: 10px;"><strong>Customer:</strong> ${customerName}</p>
-            <p style="font-size: 14px; margin-bottom: 30px;"><strong>Email:</strong> ${customerEmail}</p>
+        <div style="font-family: sans-serif; padding: 20px; background-color: #FCFAF7;">
+          <div style="max-width: 600px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 20px; border: 1px solid #EEE;">
+            <h2 style="color: #2D2D2D; border-bottom: 2px solid #F0F0F0; padding-bottom: 10px;">Order Summary</h2>
+            <p><strong>Customer:</strong> ${customerName}</p>
+            <p><strong>Email:</strong> ${customerEmail}</p>
 
-            <h3 style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #A0A0A0; margin-bottom: 20px;">Selected Styles:</h3>
-            
-            ${cartItems.map((item: any) => {
-              // 🛡️ 兼容性处理：优先取 image_url，备选 Image
-              const img = item.image_url || item.Image;
-              const id = item.id || item.ID;
-              const style = item.style || item.Style;
-              
-              return `
-              <div style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #FAFAFA;">
-                <img src="${img}" width="100" style="border-radius: 8px; object-fit: cover; margin-right: 20px; border: 1px solid #EEE;" />
-                <div style="flex: 1;">
-                  <p style="margin: 0; font-size: 13px; font-weight: bold;">[${id}] ${style}</p>
-                  <p style="margin: 0; font-size: 11px; color: #AAA;">Qty: ${item.qty} | $8.00</p>
+            <div style="margin-top: 20px;">
+              ${cartItems.map((item: any) => {
+                // 🛡️ 自动兼容大小写属性名
+                const img = item.image_url || item.Image || '';
+                const id = item.id || item.ID || 'N/A';
+                const style = item.style || item.Style || 'Unknown';
+                const qty = item.qty || 1;
+
+                return `
+                <div style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #FAFAFA;">
+                  <img src="${img}" width="100" style="border-radius: 8px; margin-right: 15px; border: 1px solid #EEE;" alt="product" />
+                  <div>
+                    <p style="margin: 0; font-weight: bold; font-size: 14px;">[${id}] ${style}</p>
+                    <p style="margin: 0; font-size: 12px; color: #666;">Quantity: ${qty} | $8.00</p>
+                  </div>
                 </div>
-              </div>
-            `}).join('')}
+                `;
+              }).join('')}
+            </div>
 
-            <div style="margin-top: 40px; padding: 20px; background-color: #F9F9F9; border-radius: 20px; text-align: center;">
-              <p style="font-size: 16px; font-weight: 900; margin: 0;">Total Amount: $${total.toFixed(2)}</p>
+            <div style="margin-top: 30px; padding: 15px; background: #F9F9F9; border-radius: 12px; text-align: center;">
+              <p style="font-weight: bold; font-size: 16px; margin: 0;">Total Amount: $${Number(total).toFixed(2)}</p>
             </div>
           </div>
         </div>
       `
     });
 
-    return NextResponse.json(data);
-  } catch (error) {
-    return NextResponse.json({ error });
+    return NextResponse.json({ success: true, data });
+  } catch (error: any) {
+    console.error("Email Error:", error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
