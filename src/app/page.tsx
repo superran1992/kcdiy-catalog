@@ -118,20 +118,17 @@ export default function App() {
   const addToCart = (product: any) => {
     setCart(prev => ({
       ...prev,
-      [product.id]: prev[product.id] ? { ...prev[product.id], qty: prev[product.id].qty + 1 } : { ...product, qty: 1 }
+      [product.id]: prev[product.id] 
+        ? { ...prev[product.id], qty: prev[product.id].qty + 1 } 
+        : { 
+            id: product.id,        // 必须显式存储 ID
+            style: product.style, 
+            image_url: product.image_url, // 必须显式存储图片地址
+            qty: 1 
+          }
     }));
   };
 
-  const updateQty = (id: string, delta: number) => {
-    setCart(prev => {
-      const newQty = (prev[id]?.qty || 0) + delta;
-      if (newQty <= 0) {
-        const { [id]: _, ...rest } = prev;
-        return rest;
-      }
-      return { ...prev, [id]: { ...prev[id], qty: newQty } };
-    });
-  };
 
   const clearAllItems = () => {
     if (window.confirm("Clear all items?")) { setCart({}); setShowCart(false); }
@@ -149,9 +146,15 @@ export default function App() {
       return;
     }
 
-    // 修改前: item => ...
-    const styleNotes = cartItems.map((item: any) => `${item.id}-${item.style} (x${item.qty})`).join(", ");
-    try { await navigator.clipboard.writeText(styleNotes); } catch (e) {}
+  // --- 修改这部分开始 ---
+    // 生成详细清单，包含编号、款式名、数量和图片链接
+    const detailedList = cartItems.map((item: any) => 
+      `编号: [${item.id}] | 款式: ${item.style} | 数量: x${item.qty}\n图片地址: ${item.image_url}`
+    ).join("\n\n---\n\n");
+
+    // 复制到剪贴板的内容（可以保留稍微简练一点，方便你处理后台）
+    const clipboardNotes = cartItems.map((item: any) => `${item.id}-${item.style}(x${item.qty})`).join(", ");
+    try { await navigator.clipboard.writeText(clipboardNotes); } catch (e) {}
 
     try {
       await fetch('/api/send', {
@@ -160,13 +163,17 @@ export default function App() {
         body: JSON.stringify({
           customerName: customerInfo.name,
           customerEmail: customerInfo.email,
-          cartItems: cartItems, 
+          orderSummary: detailedList, // 新增：将详细清单发送给后端
+          cartItems: cartItems,       // 包含原始数据（已含 id 和 image_url）
           total: totalPrice
         })
       });
     } catch (err) { console.error("Email service error:", err); }
 
-    const checkoutUrl = `https://kcdiy.live/checkout/?add-to-cart=228&quantity=${totalPrice}&order_comments=${encodeURIComponent(styleNotes)}`;
+    // 跳转链接保持原有逻辑
+    const checkoutUrl = `https://kcdiy.live/checkout/?add-to-cart=228&quantity=${totalPrice}&order_comments=${encodeURIComponent(clipboardNotes)}`;
+    // --- 修改这部分结束 ---
+
     window.open(checkoutUrl, '_blank');
     setShowContactForm(false);
     setErrors({ name: false, email: false });
