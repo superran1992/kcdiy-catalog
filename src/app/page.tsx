@@ -45,18 +45,31 @@ export default function App() {
   const [customerInfo, setCustomerInfo] = useState({ name: '', email: '' });
   const [errors, setErrors] = useState({ name: false, email: false });
   const [isShaking, setIsShaking] = useState(false);
-  // --- 补丁开始：修复 updateQty 缺失问题 ---
-  const updateQty = (id: string, delta: number) => {
-    setCartItems(prev => prev.map(item => {
-      if (item.id === id) {
-        const newQty = item.qty + delta;
-        return newQty > 0 ? { ...item, qty: newQty } : null;
-      }
-      return item;
-    }).filter(Boolean));
-  };
-  // --- 补丁结束 ---
 
+    // --- 修复后的 updateQty (适配对象结构) ---
+  const updateQty = (id: string, delta: number) => {
+    setCart(prev => {
+      const currentItem = prev[id];
+      if (!currentItem) return prev; // 防御性检查
+
+      const newQty = currentItem.qty + delta;
+
+      // 1. 如果数量 <= 0，复制对象并删除该 Key
+      if (newQty <= 0) {
+        const newCart = { ...prev };
+        delete newCart[id];
+        return newCart;
+      }
+
+      // 2. 否则更新该 Key 的数量
+      return {
+        ...prev,
+        [id]: { ...currentItem, qty: newQty }
+      };
+    });
+  };
+  // --- 修复结束 ---
+  
   useEffect(() => {
     async function fetchCloudData() {
       try {
