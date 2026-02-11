@@ -116,6 +116,18 @@ export default function App() {
   }, [search, selectedSubCat]); 
 
   const addToCart = (product: any) => {
+    // --- 补丁开始：修复 updateQty 缺失问题 ---
+  const updateQty = (id: string, delta: number) => {
+    setCartItems(prev => prev.map(item => {
+      if (item.id === id) {
+        const newQty = item.qty + delta;
+        return newQty > 0 ? { ...item, qty: newQty } : null;
+      }
+      return item;
+    }).filter(Boolean));
+  };
+  // --- 补丁结束 ---
+  
     setCart(prev => ({
       ...prev,
       [product.id]: prev[product.id] 

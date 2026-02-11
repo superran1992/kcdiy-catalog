@@ -23,22 +23,21 @@ export async function POST(request: Request) {
 
             <div style="margin-top: 20px;">
               ${cartItems.map((item: any) => {
-                // 🛡️ 自动兼容大小写属性名
-                const img = item.image_url || item.Image || '';
-                const id = item.id || item.ID || 'N/A';
-                const style = item.style || item.Style || 'Unknown';
-                const qty = item.qty || 1;
+                // --- 补丁开始：提取变量并做兼容处理 ---
+                const img = item.image_url || item.Image;
+                const id = item.id || item.ID;
+                const style = item.style || item.Style;
+                // --- 补丁结束 ---
 
                 return `
                 <div style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #FAFAFA;">
-                  <img src="${img}" width="100" style="border-radius: 8px; margin-right: 15px; border: 1px solid #EEE;" alt="product" />
-                  <div>
-                    <p style="margin: 0; font-weight: bold; font-size: 14px;">[${id}] ${style}</p>
-                    <p style="margin: 0; font-size: 12px; color: #666;">Quantity: ${qty} | $8.00</p>
+                  <img src="${img}" width="100" style="border-radius: 8px; object-fit: cover; margin-right: 20px; border: 1px solid #EEE;" />
+                  <div style="flex: 1;">
+                    <p style="margin: 0; font-size: 13px; font-weight: bold;">[${id}] ${style}</p>
+                    <p style="margin: 0; font-size: 11px; color: #AAA;">Qty: ${item.qty} | $8.00</p>
                   </div>
                 </div>
-                `;
-              }).join('')}
+              `;}).join('')}
             </div>
 
             <div style="margin-top: 30px; padding: 15px; background: #F9F9F9; border-radius: 12px; text-align: center;">
